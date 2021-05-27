@@ -86,8 +86,9 @@ use druid::widget::{Label, Flex, Padding, Align};
 ## Application state
 Currently, we know how to display a window and draw and position widgets in it. Now we're going to create a bigger app: a basic to-do list. To create anything in the app, we first need to define the application state.
 
-We'll start by defining a to-do, which contains its title and whether it's completed or not. Our state should implement [the `Data` trait](data), as well as the `Clone` trait.
+Druid is data-driven, which means that all of the widgets you use in your app need to have some associated field in the application's state. This is achieved through the usage of [the `Data` trait](data). Druid uses this to detect when the state changes, and redraw the UI appropriately.
 
+We'll start by defining a to-do, which contains its title and whether it's completed or not. Our state should implement `Data`, as well as `Clone`; we can use `derive` for both of these.
 ```rust, noplaypen
 #[derive(Data, Clone)]
 struct TodoItem {
@@ -97,13 +98,17 @@ struct TodoItem {
 ```
 
 The main application state is simply a list of to-do items, stored in a `Vec`. However, so that comparisons are fast (see [`Data`]), we will use an `Arc<Vec>` instead. Here's the main state, deriving from `Data` and `Clone` as before:
-
 ```rust, noplaypen
 #[derive(Data, Clone)]
 struct TodoApp {
     items: Arc<Vec<TodoItem>>,
 }
 ```
+
+Make sure to import `sync::Arc`.
+
+## Building the UI
+Our app will be composed of a textbox and submission button to add new to-dos, and a list of to-dos with checkboxes (to denote and set completion) below.
 
 ## Handle user input
 
