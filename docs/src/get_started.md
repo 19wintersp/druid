@@ -86,10 +86,12 @@ use druid::widget::{Label, Flex, Padding, Align};
 ## Application state
 Currently, we know how to display a window and draw and position widgets in it. Now we're going to create a bigger app: a basic to-do list. To create anything in the app, we first need to define the application state.
 
-Druid is data-driven, which means that all of the widgets you use in your app need to have some associated field in the application's state. This is achieved through the usage of [the `Data` trait](data). Druid uses this to detect when the state changes, and redraw the UI appropriately.
+Druid is data-driven, which means that all of the widgets you use in your app have some data associated, and need to have some associated field in the application's state. This is achieved through the usage of [the `Data` trait](data). Druid uses this to detect when the state changes, and redraw the UI appropriately.
 
-We'll start by defining a to-do, which contains its title and whether it's completed or not. Our state should implement `Data`, as well as `Clone`; we can use `derive` for both of these.
+We'll start by creating a project, using the same steps as earlier: create a project with Cargo, and add Druid as a dependency. In `main.rs`, we will define a to-do, which contains its title and whether it's completed or not. Our state should implement `Data` (which we need to import), as well as `Clone`; we can use `derive` for both of these.
 ```rust, noplaypen
+use druid::Data;
+
 #[derive(Data, Clone)]
 struct TodoItem {
     title: String,
@@ -105,14 +107,89 @@ struct TodoApp {
 }
 ```
 
-Make sure to import `sync::Arc`.
+Make sure to import `sync::Arc`. Our `main.rs` so far should look like this:
+```rust, noplaypen
+use std::sync::Arc;
+use druid::Data;
+
+#[derive(Data, Clone)]
+struct TodoItem {
+    title: String,
+    is_done: bool,
+}
+
+#[derive(Data, Clone)]
+struct TodoApp {
+    items: Arc<Vec<TodoItem>>,
+}
+```
 
 ## Building the UI
-Our app will be composed of a textbox and submission button to add new to-dos, and a list of to-dos with checkboxes (to denote and set completion) below.
+Our app's UI will be composed of a textbox and submission button at the top to add new to-dos, and a list of to-dos with checkboxes (to denote and set completion) below.
 
-## Handle user input
+Here's the rough structure of what we will try to build; the grey boxes are invisible structural elements, such as `Flex` widgets.
+![Rough sketch of UI](https://user-images.githubusercontent.com/61561933/119855915-3b46b580-bf0a-11eb-92b5-30940ec9fd6b.png)
 
-...
+First, we'll just add some boilerplate to create the window:
+```rust, noplaypen
+fn build_ui() -> impl Widget<TodoApp> {
+    // todo
+}
+
+fn main() {
+    let main_window = WindowDesc::new(build_ui)
+        .title("Todo app"); // set the title of the main window
+        
+    let initial_state = TodoApp {
+        items: Arc::new(vec![]), // create an empty `Vec` to start
+    };
+    
+    AppLauncher::with_window(main_window) // add the main window
+        .launch(initial_state) // launch the app with our empty state
+        .expect("Failed to launch application!");
+}
+```
+
+To create the structural elements which hold everything in place, we'll edit our `build_ui` to create them. The input field and submit are one on row, and the list of to-dos are below, so we'll place them inside a flex column. We'll also wrap that main column in some padding to make it look nicer.
+```rust, noplaypen
+fn build_ui() -> impl Widget<TodoApp> {
+    Padding::new(
+        10.0,
+        Flex::column()
+            .with_child(
+                Flex::row()
+                    .with_child(
+                        // input field; todo
+                    )
+                    .with_child(
+                        // submit button; todo
+                    )
+            )
+            .with_child(
+                // to-do items; todo
+            )
+    )
+}
+```
+
+We must also amend our import of `Data` to include the things we've just added:
+```rust, noplaypen
+use druid::{AppLauncher, Data, Widget, WindowDesc};
+use druid::widget::{Flex, Padding};
+```
+
+## Handling user input
+We'll start by adding our input field. For this input field, we will use the `TextBox` widget, which draws a box which takes in textual input from the user. Let's add it to our `build_ui` function:
+```
+                    .with_child(
+                        TextBox::new()
+                    )
+```
+
+
+As previously mentioned, widgets are tied to data, and input widgets are no exception. The `TextBox`'s state is of type `String`\*.
+
+*\*The type is actually `TextStorage + EditableText`, which are both implemented on `String`.*
 
 ## Putting it all together
 
